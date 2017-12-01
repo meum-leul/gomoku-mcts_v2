@@ -1,3 +1,4 @@
+import copy
 from gamestate import GameState
 from policies import MCTSPolicy
 
@@ -11,8 +12,7 @@ class StateNode(object):
 
 def play_game(player_policies):
     game = GameState()
-    saved_trees = {}
-    saved_last_move = None
+    origin = None
 
     # Inform the player policies that a new game is starting (so they can reset their current move pointers)
     for player_policy in player_policies:
@@ -25,6 +25,8 @@ def play_game(player_policies):
 
             # Player 1 : AI
             if game.turn() is "X":
+
+                # player_policy.__init__('X')
 
                 # recommend moves : [(0, 0), (0, 1)] etc.
                 recom_moves = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8), (0, 9), (0, 10), (0, 11), (0, 12), (0, 13), (0, 14), (0, 15),
@@ -49,24 +51,19 @@ def play_game(player_policies):
                     try:
                         m, n = input("recommend : ").split()
                         m = int(m)
-                        m -= 1
                         n = int(n)
-                        n -= 1
                         tar = (m, n)
                         recom_moves.append(tar)
                     except:
                         break
-
                 print(recom_moves)
                 """
 
-                # player_policy.reset_game()
-                tar, tree, last_move = player_policy.move(game, recom_moves, saved_trees, saved_last_move, 5)
+                tar, tree = player_policy.move(game, recom_moves, 100, origin)
 
-                print("MCTS: "+str(tar))
+                origin = copy.deepcopy(tree)
 
-                saved_trees = tree
-                saved_last_move = last_move
+                print("MCTS: " + str(tar))
 
             # Player 2 : Human
             else:
