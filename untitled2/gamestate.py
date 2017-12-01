@@ -43,7 +43,7 @@ class GameState(object):
                 else:
                     output += '{}\n'.format(contents)
 
-        output = output.replace(' ', '~')
+        output = output.replace(' ', '.')
 
         return output
 
@@ -65,24 +65,13 @@ class GameState(object):
             return 'O'
 
     def move(self, row, col):
-        """
-        Places a marker at the position (row, col). The marker placed is
-        determined by whose turn it is, either 'X' or 'O'.
-        """
+
         #print('Move: {} moves to ({}, {})'.format(self.turn(), row, col))
         self.board[row][col] = self.turn()
         #print('{}'.format(self))
 
     def legal_moves(self):
-        """
-        Returns a list of the legal actions from the current state,
-        where an action is the placement of a marker 'X' or 'O' on a board
-        position, represented as a (row, col) tuple, for example:
-          [(2, 1), (0, 0)]
-        would indicate that the positions (2, 1) and (0, 0) are available to
-        place a marker on. If the game is in a terminal state, returns an
-        empty list.
-        """
+
         # Check if terminal state
         if self.winner() is not None:
             return []
@@ -95,17 +84,7 @@ class GameState(object):
         return possible_moves
 
     def transition_function(self, row, col):
-        """
-        Applies the specified action to the current state and returns the new
-        state that would result. Can be used to simulate the effect of
-        different actions. The action is applied to the player whose turn
-        it currently is.
 
-        :param state: The starting state before applying the action
-        :param row: The row in which to place a marker
-        :param col: The column in which to place a marker
-        :return: The resulting new state that would occur
-        """
         # Verify that the specified action is legal
         assert (row, col) in self.legal_moves()
 
@@ -167,8 +146,6 @@ class GameState(object):
 
                     if all(marker == player for marker in option):
                         return player
-
-
 
         # Check for ties, defined as a board arrangement in which there are no
         # open board positions left and there are no winners (note that the
