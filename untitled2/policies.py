@@ -62,7 +62,7 @@ class MCTSPolicy(Policy):
     def reset_game(self):
         self.last_move = None
 
-    def move(self, starting_state, recom_moves, saved_trees, saved_last_move):
+    def move(self, starting_state, recom_moves, saved_trees, saved_last_move, iternum):
         starting_state = copy.deepcopy(starting_state)
         starting_node = None
 
@@ -103,7 +103,7 @@ class MCTSPolicy(Policy):
 
 
 
-        computational_budget = 5
+        computational_budget = iternum
         # recommend >= 10000
 
         for i in range(computational_budget):
