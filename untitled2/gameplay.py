@@ -51,6 +51,8 @@ def play_game(player_policies):
             current = str(game)
             G.add_edge(previous, current)
 
+            print(game)
+
             if game.winner() is not None:
                 break
 
