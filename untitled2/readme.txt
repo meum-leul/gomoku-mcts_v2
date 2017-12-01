@@ -1,13 +1,20 @@
-# MCTS ¼öÇà
+gameplay.py: testìš© code (ë¬´ì‹œí•´ë„ ë¨)
+gamestate.py: ì˜¤ëª© ê²½ê¸° field, ê·œì¹™ ê·œì •
+policies.py: MCTS êµ¬í˜„
 
-# tar: MCTS °á°ú ÁÂÇ¥ (2Â÷¿ø)
-# tree: MCTS °á°ú Æ®¸®
-# X: Player 1
-# O: Player 2
-# game: ¹ÙµÏÆÇ state ('.', 'X', ¶Ç´Â 'O')
-# recom_moves: CNNÃßÃµÁÂÇ¥ ex) [(0,0), (1,0), ... , (11, 11)]
-# iternum: ¹İº¹È½¼ö
-# origin: ÀúÀåÇØµĞ tree ·Îµå
 
+# MCTS ì‚¬ìš© ë²•
 tar, tree = MCTSPolicy(player='X').move(game, recom_moves, iternum, origin)
 origin = copy.deepcopy(tree)
+
+
+"""
+tar: MCTS ê²°ê³¼ ì¢Œí‘œ (2ì°¨ì›)
+tree: MCTS ê²°ê³¼ íŠ¸ë¦¬
+X: Player 1
+O: Player 2
+game: ë°”ë‘‘íŒ state ('.', 'X', ë˜ëŠ” 'O')
+recom_moves: CNNì¶”ì²œì¢Œí‘œ ex) [(0,0), (1,0), ... , (11, 11)]
+iternum: ë°˜ë³µíšŸìˆ˜
+origin: ì €ì¥í•´ë‘” tree ë¡œë“œ
+"""
