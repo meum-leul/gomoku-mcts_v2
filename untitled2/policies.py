@@ -99,10 +99,6 @@ class MCTSPolicy(Policy):
                 if self.digraph.node[node]['state'] == starting_state:
                     starting_node = node
 
-
-
-
-
         computational_budget = iternum
         # recommend >= 10000
 
