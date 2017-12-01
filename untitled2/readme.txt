@@ -16,5 +16,5 @@ O: Player 2
 game: 바둑판 state ('.', 'X', 또는 'O')
 recom_moves: CNN추천좌표 ex) [(0,0), (1,0), ... , (11, 11)]
 iternum: 반복횟수
-origin: 저장해둔 tree 로드
+origin: 저장해둔 tree 로드 (초기값 None)
 """
