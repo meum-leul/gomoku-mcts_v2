@@ -1,162 +1,86 @@
 import copy
+from gamestate import GameState
+from policies import MCTSPolicy
 
 
-class GameState(object):
-    def __init__(self):
-        # Begin with an empty game board
-        self.board = [[' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                      [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']]
+class StateNode(object):
+    def __init__(self, board):
+        self.state = board
+        self.parent = None
+        self.child = None
 
-    # GameState needs to be hashable so that it can be used as a unique graph
-    # node in NetworkX
-    def __key(self):
-        return self.__str__()
 
-    def __eq__(x, y):
-        return x.__key() == y.__key()
+def play_game(player_policies):
+    game = GameState()
+    origin = None
 
-    def __hash__(self):
-        return hash(self.__key())
+    # Inform the player policies that a new game is starting (so they can reset their current move pointers)
+    for player_policy in player_policies:
+        if type(player_policy) is MCTSPolicy:
+            player_policy.reset_game()
 
-    def __str__(self):
+    while game.winner() is None:
+        for player_policy in player_policies:
+            # print("\n================ ( It is {}'s move. ) ================".format(game.turn()))
 
-        output = ''
-        for row in range(16):
-            for col in range(16):
-                contents = self.board[row][col]
-                if col < 15:
-                    output += '{}'.format(contents)
-                else:
-                    output += '{}\n'.format(contents)
+            # Player 1 : AI
+            if game.turn() is "X":
 
-        output = output.replace(' ', '.')
+                player_policy.__init__('X')
 
-        return output
+                # recommend moves : [(0, 0), (0, 1)] etc.
+                recom_moves = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8), (0, 9), (0, 10), (0, 11), (0, 12), (0, 13), (0, 14), (0, 15),
+                               (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15),
+                               (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 9), (2, 10), (2, 11), (2, 12), (2, 13), (2, 14), (2, 15),
+                               (3, 0), (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (3, 9), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 15),
+                               (4, 0), (4, 1), (4, 2), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7), (4, 8), (4, 9), (4, 10), (4, 11), (4, 12), (4, 13), (4, 14), (4, 15),
+                               (5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5), (5, 6), (5, 7), (5, 8), (5, 9), (5, 10), (5, 11), (5, 12), (5, 13), (5, 14), (5, 15),
+                               (6, 0), (6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (6, 6), (6, 7), (6, 8), (6, 9), (6, 10), (6, 11), (6, 12), (6, 13), (6, 14), (6, 15),
+                               (7, 0), (7, 1), (7, 2), (7, 3), (7, 4), (7, 5), (7, 6), (7, 7), (7, 8), (7, 9), (7, 10), (7, 11), (7, 12), (7, 13), (7, 14), (7, 15),
+                               (8, 0), (8, 1), (8, 2), (8, 3), (8, 4), (8, 5), (8, 6), (8, 7), (8, 8), (8, 9), (8, 10), (8, 11), (8, 12), (8, 13), (8, 14), (8, 15),
+                               (9, 0), (9, 1), (9, 2), (9, 3), (9, 4), (9, 5), (9, 6), (9, 7), (9, 8), (9, 9), (9, 10), (9, 11), (9, 12), (9, 13), (9, 14), (9, 15),
+                               (10, 0), (10, 1), (10, 2), (10, 3), (10, 4), (10, 5), (10, 6), (10, 7), (10, 8), (10, 9), (10, 10), (10, 11), (10, 12), (10, 13), (10, 14), (10, 15),
+                               (11, 0), (11, 1), (11, 2), (11, 3), (11, 4), (11, 5), (11, 6), (11, 7), (11, 8), (11, 9), (11, 10), (11, 11), (11, 12), (11, 13), (11, 14), (11, 15),
+                               (12, 0), (12, 1), (12, 2), (12, 3), (12, 4), (12, 5), (12, 6), (12, 7), (12, 8), (12, 9), (12, 10), (12, 11), (12, 12), (12, 13), (12, 14), (12, 15),
+                               (13, 0), (13, 1), (13, 2), (13, 3), (13, 4), (13, 5), (13, 6), (13, 7), (13, 8), (13, 9), (13, 10), (13, 11), (13, 12), (13, 13), (13, 14), (13, 15),
+                               (14, 0), (14, 1), (14, 2), (14, 3), (14, 4), (14, 5), (14, 6), (14, 7), (14, 8), (14, 9), (14, 10), (14, 11), (14, 12), (14, 13), (14, 14), (14, 15),
+                               (15, 0), (15, 1), (15, 2), (15, 3), (15, 4), (15, 5), (15, 6), (15, 7), (15, 8), (15, 9), (15, 10), (15, 11), (15, 12), (15, 13), (15, 14), (15, 15)]
+                """
+                recom_moves = []
+                while True:
+                    try:
+                        m, n = input("recommend : ").split()
+                        m = int(m)
+                        n = int(n)
+                        tar = (m, n)
+                        recom_moves.append(tar)
+                    except:
+                        break
+                print(recom_moves)
+                """
 
-    def turn(self):
-        """
-        Returns the player whose turn it is: 'X' or 'O'
-        """
-        num_X = 0
-        num_O = 0
-        for row in range(16):
-            for col in range(16):
-                if self.board[row][col] == 'X':
-                    num_X += 1
-                elif self.board[row][col] == 'O':
-                    num_O += 1
-        if num_X == num_O:
-            return 'X'
-        else:
-            return 'O'
+                tar, temp = player_policy.move(game, recom_moves, 2, origin)
 
-    def move(self, row, col):
+                origin = copy.deepcopy(temp)
 
-        #print('Move: {} moves to ({}, {})'.format(self.turn(), row, col))
-        self.board[row][col] = self.turn()
-        #print('{}'.format(self))
+                print("MCTS: " + str(tar))
 
-    def legal_moves(self):
+            # Player 2 : Human
+            else:
+                m, n = input("which Do you want? : ").split()
+                m = int(m)
+                n = int(n)
+                tar = (m, n)
 
-        # Check if terminal state
-        if self.winner() is not None:
-            return []
+            game.move(*tar)
+            print(game)
 
-        possible_moves = []
-        for row in range(16):
-            for col in range(16):
-                if self.board[row][col] == ' ':
-                    possible_moves.append((row, col))
-        return possible_moves
+            if game.winner() is not None:
+                break
 
-    def transition_function(self, row, col):
+    return game.winner()
 
-        # Verify that the specified action is legal
-        assert (row, col) in self.legal_moves()
 
-        # First, make a copy of the current state
-        new_state = copy.deepcopy(self)
-
-        # Then, apply the action to produce the new state
-        new_state.move(row, col)
-
-        return new_state
-
-    def winner(self):
-
-        for player in ['X', 'O']:
-            # case -
-            for i in range(16):
-                for j in range(12):
-                    option = [ self.board[i][j+0],
-                               self.board[i][j+1],
-                               self.board[i][j+2],
-                               self.board[i][j+3],
-                               self.board[i][j+4]]
-
-                    if all(marker == player for marker in option):
-                        return player
-
-            # case |
-            for i in range(16):
-                for j in range(12):
-                    option = [self.board[j+0][i],
-                              self.board[j+1][i],
-                              self.board[j+2][i],
-                              self.board[j+3][i],
-                              self.board[j+4][i]]
-
-                    if all(marker == player for marker in option):
-                        return player
-
-            # case \
-            for i in range(12):
-                for j in range(12):
-                    option = [ self.board[i+0][j+0],
-                               self.board[i+1][j+1],
-                               self.board[i+2][j+2],
-                               self.board[i+3][j+3],
-                               self.board[i+4][j+4]]
-
-                    if all(marker == player for marker in option):
-                        return player
-
-            # case /
-            for i in range(12):
-                for j in range(12):
-                    option = [self.board[i+4][j+0],
-                              self.board[i+3][j+1],
-                              self.board[i+2][j+2],
-                              self.board[i+1][j+3],
-                              self.board[i+0][j+4]]
-
-                    if all(marker == player for marker in option):
-                        return player
-
-        # Check for ties, defined as a board arrangement in which there are no
-        # open board positions left and there are no winners (note that the
-        # tie is not being detected ahead of time, as could potentially be
-        # done)
-        accum = 0
-        for row in range(16):
-            for col in range(16):
-                if self.board[row][col] == ' ':
-                    accum += 1
-        if accum == 0:
-            return 'Tie'
-
-        return None
+# main
+winner = play_game([MCTSPolicy(player='X'), MCTSPolicy(player='O')])
+print('Game over. Winner is Player ' + str(winner))
