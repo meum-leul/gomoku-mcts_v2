@@ -96,22 +96,22 @@ class MCTSPolicy(Policy):
                 if self.digraph.node[node]['state'] == starting_state:
                     starting_node = node
 
-        computational_budget = 100
-        # 10000
+        computational_budget = 25
+        # recommend >= 10000
+
         for i in range(computational_budget):
             self.num_simulations += 1
 
-            print("Running MCTS from this starting state with node id {}:\n{}".format(starting_node,
-                                                                                      starting_state))
+            #print("Running MCTS from this starting state with node id {}:\n{}".format(starting_node, starting_state))
 
             # Until computational budget runs out, run simulated trials
             # through the tree:
 
             # Selection: Recursively pick the best node that maximizes UCT
             # until reaching an unvisited node
-            print('================ ( selection ) ================')
+            #print('================ ( selection ) ================')
             selected_node = self.selection(starting_node)
-            print('selected:\n{}'.format(self.digraph.node[selected_node]['state']))
+            #print('selected:\n{}'.format(self.digraph.node[selected_node]['state']))
 
             # Check if the selected node is a terminal state, and if so, this
             # iteration is finished
@@ -119,17 +119,17 @@ class MCTSPolicy(Policy):
                 break
 
             # Expansion: Add a child node where simulation will start
-            print('================ ( expansion ) ================')
+            #print('================ ( expansion ) ================')
             new_child_node = self.expansion(selected_node)
-            print('Node chosen for expansion:\n{}'.format(new_child_node))
+            #print('Node chosen for expansion:\n{}'.format(new_child_node))
 
             # Simulation: Conduct a light playout
-            print('================ ( simulation ) ================')
+            #print('================ ( simulation ) ================')
             reward = self.simulation(new_child_node)
-            print('Reward obtained: {}\n'.format(reward))
+            #print('Reward obtained: {}\n'.format(reward))
 
             # Backpropagation: Update the nodes on the path with the simulation results
-            print('================ ( backpropagation ) ================')
+            #print('================ ( backpropagation ) ================')
             self.backpropagation(new_child_node, reward)
 
         move, resulting_node = self.best(starting_node)
@@ -140,6 +140,7 @@ class MCTSPolicy(Policy):
         # If we won, reset the last move to None for future games
         if self.digraph.node[resulting_node]['state'].winner():
             self.last_move = None
+
 
         return move
 
@@ -192,10 +193,10 @@ class MCTSPolicy(Policy):
             self.node_counter += 1
             return root
         elif not self.digraph.node[root]['expanded']:
-            print('root in digraph but not expanded')
+            #print('root in digraph but not expanded')
             return root  # This is the node to expand
         else:
-            print('root expanded, move on to a child')
+            #print('root expanded, move on to a child')
             # Handle the general case
             children = self.digraph.successors(root)
             uct_values = {}
@@ -211,14 +212,14 @@ class MCTSPolicy(Policy):
         # As long as this node has at least one unvisited child, choose a legal move
         children = self.digraph.successors(node)
         legal_moves = self.digraph.node[node]['state'].legal_moves()
-        print('Legal moves: {}'.format(legal_moves))
+        #print('Legal moves: {}'.format(legal_moves))
 
         # Select the next unvisited child with uniform probability
         unvisited_children = []
         corresponding_actions = []
-        print("legal moves: {}".format(legal_moves))
+        #print("legal moves: {}".format(legal_moves))
         for move in legal_moves:
-            print('adding to expansion analysis with: {}'.format(move))
+            #print('adding to expansion analysis with: {}'.format(move))
             child = self.digraph.node[node]['state'].transition_function(*move)
 
             in_children = False
@@ -230,7 +231,7 @@ class MCTSPolicy(Policy):
                 unvisited_children.append(child)
                 corresponding_actions.append(move)
         # Todo: why is it possible for there to be no unvisited children?
-        print('unvisited children: {}'.format(len(unvisited_children)))
+        #print('unvisited children: {}'.format(len(unvisited_children)))
         if len(unvisited_children) > 0:
             idx = np.random.randint(len(unvisited_children))
             child, move = unvisited_children[idx], corresponding_actions[idx]
@@ -255,7 +256,7 @@ class MCTSPolicy(Policy):
         # If all legal moves are now children, mark this node as expanded.
         if len(children) + 1 == len(legal_moves):
             self.digraph.node[node]['expanded'] = True
-            print('node is expanded')
+            #print('node is expanded')
 
         return child_node_id
 
@@ -285,9 +286,7 @@ class MCTSPolicy(Policy):
             self.digraph.node[current]['n'] += 1
             self.digraph.node[current]['w'] += reward
 
-            print('Updating to n={} and w={}:\n{}'.format(self.digraph.node[current]['n'],
-                                                          self.digraph.node[current]['w'],
-                                                          self.digraph.node[current]['state']))
+            #print('Updating to n={} and w={}:\n{}'.format(self.digraph.node[current]['n'], self.digraph.node[current]['w'], self.digraph.node[current]['state']))
 
             # Terminate when we reach the empty board
             if self.digraph.node[current]['state'] == GameState():
@@ -316,14 +315,12 @@ class MCTSPolicy(Policy):
 
         exploitation_value = w / (n + epsilon)
         exploration_value = c * np.sqrt(np.log(t) / (n + epsilon))
-        print('exploration_value: {}'.format(exploration_value))
+        #print('exploration_value: {}'.format(exploration_value))
 
         value = exploitation_value + exploration_value
 
-        print('UCT value {:.3f} for state:\n{}'.format(value, state))
+        #print('UCT value {:.3f} for state:\n{}'.format(value, state))
 
         self.digraph.node[state]['uct'] = value
 
         return value
-
-
