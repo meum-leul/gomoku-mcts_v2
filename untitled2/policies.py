@@ -62,15 +62,12 @@ class MCTSPolicy(Policy):
     def reset_game(self):
         self.last_move = None
 
-    def move(self, starting_state, recom_moves, saved_trees, saved_last_move, iternum):
+    def move(self, starting_state, recom_moves, iternum, origin):
         starting_state = copy.deepcopy(starting_state)
         starting_node = None
 
-        if len(saved_trees.keys()) != 0:
-            self.digraph.node = saved_trees
-
-        if saved_last_move != None:
-            self.last_move = saved_last_move
+        if origin != None:
+            self = origin
 
         if self.last_move is not None:
             # Check if the starting state is already in the graph as a child of the last move that we made
@@ -122,7 +119,7 @@ class MCTSPolicy(Policy):
             self.last_move = None
 
 
-        return move, self.digraph.node, self.last_move
+        return move, self
 
     def best(self, root):
         """
