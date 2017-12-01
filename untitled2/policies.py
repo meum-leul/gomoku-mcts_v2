@@ -62,12 +62,15 @@ class MCTSPolicy(Policy):
     def reset_game(self):
         self.last_move = None
 
-    def move(self, starting_state, recom_moves):
-        # Make a copy of the starting state so that the MCTS state can't be
-        # modified later from the outside
+    def move(self, starting_state, recom_moves, saved_trees, saved_last_move):
         starting_state = copy.deepcopy(starting_state)
-
         starting_node = None
+
+        if len(saved_trees.keys()) != 0:
+            self.digraph.node = saved_trees
+
+        if saved_last_move != None:
+            self.last_move = saved_last_move
 
         if self.last_move is not None:
             # Check if the starting state is already in the graph as a child of the last move that we made
@@ -96,40 +99,21 @@ class MCTSPolicy(Policy):
                 if self.digraph.node[node]['state'] == starting_state:
                     starting_node = node
 
-        computational_budget = 10
+
+
+
+
+        computational_budget = 5
         # recommend >= 10000
 
         for i in range(computational_budget):
             self.num_simulations += 1
 
-            #print("Running MCTS from this starting state with node id {}:\n{}".format(starting_node, starting_state))
-
-            # Until computational budget runs out, run simulated trials
-            # through the tree:
-
-            # Selection: Recursively pick the best node that maximizes UCT
-            # until reaching an unvisited node
-            #print('================ ( selection ) ================')
             selected_node = self.selection(starting_node)
-            #print('selected:\n{}'.format(self.digraph.node[selected_node]['state']))
-
-            # Check if the selected node is a terminal state, and if so, this
-            # iteration is finished
             if self.digraph.node[selected_node]['state'].winner():
                 break
-
-            # Expansion: Add a child node where simulation will start
-            #print('================ ( expansion ) ================')
             new_child_node = self.expansion(selected_node, recom_moves)
-            #print('Node chosen for expansion:\n{}'.format(new_child_node))
-
-            # Simulation: Conduct a light playout
-            #print('================ ( simulation ) ================')
             reward = self.simulation(new_child_node)
-            #print('Reward obtained: {}\n'.format(reward))
-
-            # Backpropagation: Update the nodes on the path with the simulation results
-            #print('================ ( backpropagation ) ================')
             self.backpropagation(new_child_node, reward)
 
         move, resulting_node = self.best(starting_node)
@@ -142,7 +126,7 @@ class MCTSPolicy(Policy):
             self.last_move = None
 
 
-        return move
+        return move, self.digraph.node, self.last_move
 
     def best(self, root):
         """
