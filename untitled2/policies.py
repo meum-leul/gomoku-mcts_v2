@@ -62,7 +62,7 @@ class MCTSPolicy(Policy):
     def reset_game(self):
         self.last_move = None
 
-    def move(self, starting_state):
+    def move(self, starting_state, recom_moves):
         # Make a copy of the starting state so that the MCTS state can't be
         # modified later from the outside
         starting_state = copy.deepcopy(starting_state)
@@ -96,7 +96,7 @@ class MCTSPolicy(Policy):
                 if self.digraph.node[node]['state'] == starting_state:
                     starting_node = node
 
-        computational_budget = 25
+        computational_budget = 10
         # recommend >= 10000
 
         for i in range(computational_budget):
@@ -120,7 +120,7 @@ class MCTSPolicy(Policy):
 
             # Expansion: Add a child node where simulation will start
             #print('================ ( expansion ) ================')
-            new_child_node = self.expansion(selected_node)
+            new_child_node = self.expansion(selected_node, recom_moves)
             #print('Node chosen for expansion:\n{}'.format(new_child_node))
 
             # Simulation: Conduct a light playout
@@ -133,7 +133,7 @@ class MCTSPolicy(Policy):
             self.backpropagation(new_child_node, reward)
 
         move, resulting_node = self.best(starting_node)
-        print('MCTS complete. Suggesting move: {}\n'.format(move))
+        #print('MCTS complete. Suggesting move: {}\n'.format(move))
 
         self.last_move = resulting_node
 
@@ -208,7 +208,7 @@ class MCTSPolicy(Policy):
 
             return self.selection(best_child_node)
 
-    def expansion(self, node):
+    def expansion(self, node, recom):
         # As long as this node has at least one unvisited child, choose a legal move
         children = self.digraph.successors(node)
         legal_moves = self.digraph.node[node]['state'].legal_moves()
@@ -218,19 +218,21 @@ class MCTSPolicy(Policy):
         unvisited_children = []
         corresponding_actions = []
         #print("legal moves: {}".format(legal_moves))
+
         for move in legal_moves:
-            #print('adding to expansion analysis with: {}'.format(move))
-            child = self.digraph.node[node]['state'].transition_function(*move)
+            if move in recom:
+                #print('adding to expansion analysis with: {}'.format(move))
+                child = self.digraph.node[node]['state'].transition_function(*move)
 
-            in_children = False
-            for child_node in children:
-                if self.digraph.node[child_node]['state'] == child:
-                    in_children = True
+                in_children = False
+                for child_node in children:
+                    if self.digraph.node[child_node]['state'] == child:
+                        in_children = True
 
-            if not in_children:
-                unvisited_children.append(child)
-                corresponding_actions.append(move)
-        # Todo: why is it possible for there to be no unvisited children?
+                if not in_children:
+                    unvisited_children.append(child)
+                    corresponding_actions.append(move)
+
         #print('unvisited children: {}'.format(len(unvisited_children)))
         if len(unvisited_children) > 0:
             idx = np.random.randint(len(unvisited_children))
