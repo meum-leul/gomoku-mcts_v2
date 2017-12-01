@@ -59,7 +59,8 @@ def play_game(player_policies):
                 print(recom_moves)
                 """
 
-                tar, tree = player_policy.move(game, recom_moves, 100, origin)
+                # tar, tree = player_policy.move(game, recom_moves, 100, origin)
+                tar, tree = MCTSPolicy(player='X').move(game, recom_moves, 100, origin)
 
                 origin = copy.deepcopy(tree)
 
